@@ -2,6 +2,7 @@ FROM python:3.7-slim-stretch
 
 RUN apt-get update && apt-get install -y git python3-dev gcc \
     && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install libsndfile1 -y
 
 COPY requirements.txt .
 
