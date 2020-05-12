@@ -23,11 +23,24 @@ function analyze() {
   var loc = window.location;
   xhr.open("POST", `${loc.protocol}//${loc.hostname}:${loc.port}/analyze`,
            true);
-  xhr.onerror = function() { alert(xhr.responseText); };
+
+  xhr.onreadystatechange = function() { console.log(xhr.status); }
+
+                           xhr.onerror = function() {
+    alert(xhr.responseText);
+  };
   xhr.onload = function(e) {
-    if (this.readyState === 4) {
-      var response = JSON.parse(e.target.responseText);
-      el("result-label").innerHTML = `Result = ${response["result"]}`;
+    var response = e.target.response;
+    var jsonResponse = JSON.parse(response);
+    console.log(jsonResponse);
+    console.log('Response on ' + jsonResponse['image']);
+    if (jsonResponse['image'] !== undefined) {
+      var encodedImage = jsonResponse['image'];
+      el("image-picked").src = "data:image/png;base64," + encodedImage;
+      el("image-picked").className = "";
+      el("result-label").innerHTML = `Result = ${jsonResponse["result"]}`;
+      //  var response = JSON.parse(e.target.responseText);
+      //
       // el("debug-label").innerHTML = `Debug = ${response["debug"]}`;
     }
     el("analyze-button").innerHTML = "Analyze";

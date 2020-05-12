@@ -15,6 +15,7 @@ import librosa.display
 import wave
 import numpy as np
 import matplotlib.pyplot as plt
+import base64
 
 
 def plot_spectrogram(audio_path):
@@ -205,17 +206,21 @@ async def homepage(request):
 async def analyze(request):
     audio_data = await request.form()
     audio_bytes = await (audio_data['file'].read())
-    audio_file = wave.open('temp.wav', mode='wb')
+    audio_file = wave.open('app/temp.wav', mode='wb')
     audio_file.setnchannels(1)
     audio_file.setframerate(44100.0)
     audio_file.setsampwidth(2)
     audio_file.writeframes(audio_bytes)
-    audio_to_spectrogram('temp.wav')
+    audio_to_spectrogram('app/temp.wav')
 
-    img = open_image('temp.png')
-    prediction = learn.predict(img, thresh=0.3)
-
-    return JSONResponse({'result': str(prediction[0])})
+    img = open_image('app/temp.png')
+    tfms = get_transforms(do_flip=False, p_affine=0, p_lighting=0)[0]
+    img = img.apply_tfms(tfms=tfms, size=(224, 336), resize_method=3)
+    prediction = learn.predict(img, thresh=0.15)
+    encoded_string = ""
+    with open("app/temp.png", "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    return JSONResponse({'result': str(prediction[0]), 'image': str(encoded_string.decode('utf-8'))})
 
 
 if __name__ == '__main__':
